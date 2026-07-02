@@ -28,17 +28,37 @@ edge and listeners don't hit your origin.
 
 ## Terminal usage
 
+**Fastest path** — install mpv once, then:
+
+```bash
+npx -y playlist-mcp crunchtime
+```
+
+That starts the default Kingdom Hearts battle playlist (hosted on Cloudflare R2, no config
+needed). Controls: `crunchtime next`, `crunchtime pause`, `crunchtime resume`,
+`crunchtime status`, `crunchtime stop`. Inside the session, single-letter shortcuts
+work too (`n`, `p`, `r`, `s`, `q`).
+
+Or link locally for a global command:
+
 ```bash
 npm install
-npm link                      # makes the `play` command available globally
+npm link                      # makes `play` and `crunchtime` available globally
 
-# Point at your server's playlist folder (or pass full URLs instead)
+crunchtime                    # kingdom-hearts playlist, no env vars required
+crunchtime next
+```
+
+**Other playlists** — override the default server or pass URLs directly:
+
+```bash
 export PLAYLIST_BASE_URL=https://music.example.com/playlists
 
 play focus                    # plays https://music.example.com/playlists/focus.m3u
 play next
 play prev
 play pause
+play resume
 play status                   # ▶ 3/12  Artist – Track  1:24/3:58
 play stop
 ```
@@ -64,8 +84,9 @@ Add to your MCP config (`.mcp.json` for Claude Code, `mcp.json` for Cursor):
 ```
 
 Then ask your agent things like "play the focus playlist", "skip this song",
-"what's playing?". Tools exposed: `play_playlist`, `next_track`,
-`previous_track`, `toggle_pause`, `now_playing`, `stop_playback`.
+"what's playing?". Tools exposed: `play_playlist`, `play_default_playlist`,
+`next_track`, `previous_track`, `toggle_pause`, `pause_playback`,
+`resume_playback`, `now_playing`, `stop_playback`.
 
 The CLI and the MCP server control the same mpv instance, so you can start a
 playlist from chat and skip tracks from the terminal (or vice versa).

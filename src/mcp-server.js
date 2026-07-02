@@ -3,7 +3,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import * as mpv from "./mpv.js";
-import { resolvePlaylist } from "./playlists.js";
+import { DEFAULT_PLAYLIST, resolvePlaylist } from "./playlists.js";
 
 const server = new McpServer({ name: "playlist-mcp", version: "0.1.0" });
 
@@ -36,6 +36,31 @@ server.tool("toggle_pause", "Pause or resume playback.", {}, async () => {
   await mpv.togglePause();
   return text(await mpv.status());
 });
+
+server.tool("pause_playback", "Pause playback.", {}, async () => {
+  await mpv.setPaused(true);
+  return text(await mpv.status());
+});
+
+server.tool("resume_playback", "Resume playback. Restarts the default playlist if nothing is playing.", {}, async () => {
+  await mpv.resumePlayback({
+    restart: async () => {
+      await mpv.startPlaylist(resolvePlaylist(DEFAULT_PLAYLIST));
+    },
+  });
+  return text(await mpv.status());
+});
+
+server.tool(
+  "play_default_playlist",
+  "Start the default playlist (kingdom-hearts). Replaces whatever is currently playing.",
+  {},
+  async () => {
+    const url = resolvePlaylist(DEFAULT_PLAYLIST);
+    await mpv.startPlaylist(url);
+    return text(`Playing ${url}\n${await mpv.status()}`);
+  }
+);
 
 server.tool("now_playing", "Show the current track and playlist position.", {}, async () =>
   text(await mpv.status())

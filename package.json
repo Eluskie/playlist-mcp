@@ -5,6 +5,7 @@
   "type": "module",
   "bin": {
     "play": "bin/play.js",
+    "crunchtime": "bin/crunchtime.js",
     "playlist-mcp": "src/mcp-server.js"
   },
   "scripts": {

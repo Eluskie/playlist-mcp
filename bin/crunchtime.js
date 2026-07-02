@@ -1,41 +1,40 @@
 #!/usr/bin/env node
 import * as mpv from "../src/mpv.js";
+import { runCrunchtimeRepl } from "../src/crunchtime-repl.js";
 import { DEFAULT_PLAYLIST, resolvePlaylist } from "../src/playlists.js";
+import { crunchHelp, formatPlayback, formatStop } from "../src/cli-theme.js";
 
-const [cmd, ...rest] = process.argv.slice(2);
+const [cmd] = process.argv.slice(2);
 
-const usage = `Usage:
-  play <playlist>   start a playlist (name, .m3u URL, or path)
-  play next         skip forward
-  play prev         go back
-  play pause        toggle pause
-  play resume       unpause (restarts default playlist if stopped)
-  play status       show current track
-  play stop         stop playback`;
+async function showStatus() {
+  console.log(formatPlayback(await mpv.playbackInfo({ wait: true })));
+}
 
 try {
   switch (cmd) {
     case undefined:
+      await runCrunchtimeRepl();
+      break;
     case "-h":
     case "--help":
-      console.log(usage);
+      console.log(crunchHelp());
       break;
     case "next":
     case "n":
       await mpv.next();
       await new Promise((r) => setTimeout(r, 300));
-      console.log(await mpv.status());
+      await showStatus();
       break;
     case "prev":
     case "b":
       await mpv.prev();
       await new Promise((r) => setTimeout(r, 300));
-      console.log(await mpv.status());
+      await showStatus();
       break;
     case "pause":
     case "p":
       await mpv.togglePause();
-      console.log(await mpv.status());
+      await showStatus();
       break;
     case "resume":
     case "unpause":
@@ -45,22 +44,23 @@ try {
           await mpv.startPlaylist(resolvePlaylist(DEFAULT_PLAYLIST));
         },
       });
-      console.log(await mpv.status());
+      await showStatus();
+      break;
+    case "play":
+      await mpv.startPlaylist(resolvePlaylist(DEFAULT_PLAYLIST));
+      await showStatus();
       break;
     case "status":
     case "s":
-      console.log(await mpv.status());
+      await showStatus();
       break;
     case "stop":
-      await mpv.stop().catch(() => {});
-      console.log("Stopped.");
+      await mpv.shutdown();
+      console.log(formatStop());
       break;
-    default: {
-      const url = resolvePlaylist(cmd);
-      console.log(`Playing ${url} ...`);
-      await mpv.startPlaylist(url);
-      console.log(await mpv.status());
-    }
+    default:
+      console.error(`Unknown command: ${cmd}\n\n${crunchHelp()}`);
+      process.exit(1);
   }
 } catch (err) {
   console.error(err.message);
