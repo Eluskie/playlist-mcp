@@ -1,0 +1,21 @@
+{
+  "name": "playlist-mcp",
+  "version": "0.1.0",
+  "description": "Play server-hosted playlists from your terminal or through MCP (Claude Code / Cursor), backed by a local headless mpv.",
+  "type": "module",
+  "bin": {
+    "play": "bin/play.js",
+    "playlist-mcp": "src/mcp-server.js"
+  },
+  "scripts": {
+    "mcp": "node src/mcp-server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.23.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}

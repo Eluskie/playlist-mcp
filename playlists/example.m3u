@@ -1,0 +1,6 @@
+#EXTM3U
+# Replace these with URLs to audio files on your server.
+# Any format mpv supports works: mp3, flac, ogg, m4a, ...
+https://music.example.com/tracks/track-01.mp3
+https://music.example.com/tracks/track-02.mp3
+https://music.example.com/tracks/track-03.mp3
