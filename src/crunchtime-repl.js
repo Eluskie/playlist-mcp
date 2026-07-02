@@ -25,30 +25,39 @@ function createLiveDisplay(rl) {
   let paused = false;
   let reserved = false;
 
-  function moveAbovePrompt() {
-    readline.moveCursor(process.stdout, 0, -(STATUS_HEIGHT + 1));
+  function moveToStatusTop() {
+    readline.moveCursor(process.stdout, 0, -STATUS_HEIGHT);
+  }
+
+  function restorePromptCursor() {
+    process.stdout.write("\x1b[u");
   }
 
   function writeBlock(text) {
     if (!reserved) return;
 
     const lines = padStatusBlock(text).split("\n");
-    moveAbovePrompt();
+
+    // Save prompt cursor, redraw only the reserved status rows, then restore.
+    process.stdout.write("\x1b[s");
+    moveToStatusTop();
     for (const line of lines) {
       readline.clearLine(process.stdout, 0);
       process.stdout.write(`${line}\n`);
     }
-    rl.prompt(true);
+    restorePromptCursor();
   }
 
   function clearBlock() {
     if (!reserved) return;
-    moveAbovePrompt();
+
+    process.stdout.write("\x1b[s");
+    moveToStatusTop();
     for (let i = 0; i < STATUS_HEIGHT; i++) {
       readline.clearLine(process.stdout, 0);
       process.stdout.write("\n");
     }
-    rl.prompt(true);
+    restorePromptCursor();
   }
 
   function reserve(text) {
@@ -80,7 +89,6 @@ function createLiveDisplay(rl) {
   function start() {
     if (interval) return;
     paused = false;
-    void renderOnce();
     interval = setInterval(() => void tick(), LIVE_TICK_MS);
   }
 
@@ -104,7 +112,11 @@ function createLiveDisplay(rl) {
   async function withOutput(fn) {
     pause();
     await fn();
-    if (await mpv.isRunning()) resume();
+    if (await mpv.isRunning()) {
+      rl.prompt(true);
+      process.stdout.write("\x1b[s");
+      resume();
+    }
   }
 
   return { start, stop, clearBlock, pause, resume, withOutput, renderOnce, reserve };
@@ -277,10 +289,14 @@ export async function runCrunchtimeRepl() {
         });
         if (await mpv.isRunning()) live.start();
       }
-      if (!closing) rl.prompt();
+      if (!closing) {
+        rl.prompt();
+        process.stdout.write("\x1b[s");
+      }
     })();
   });
 
   rl.prompt();
+  process.stdout.write("\x1b[s");
   live.start();
 }
